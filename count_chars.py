@@ -34,8 +34,8 @@ def read_files(root_dir):
             status(f"Entering {root}/ ({len(files)} file(s))")
         for fname in files:
             path = os.path.join(root, fname)
-            if os.path.abspath(path) == OUTPUT_PATH:
-                status(f"  {path}: skipped (output file)")
+            if os.path.abspath(path) == OUTPUT_PATH or fname.endswith('.freq.txt'):
+                status(f"{path}: skipped (output file)")
                 continue
             try:
                 with open(path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -71,10 +71,10 @@ def analyze(heap):
     print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
     return counter
 
-def write_results(counter):
-    print(f"Writing results to {OUTPUT_PATH}...", end='', flush=True, file=sys.stderr)
+def write_results(counter, output_path):
+    print(f"Writing results to {output_path}...", end='', flush=True, file=sys.stderr)
     total = sum(counter.values())
-    with open(OUTPUT_PATH, 'w', encoding='utf-8') as out:
+    with open(output_path, 'w', encoding='utf-8') as out:
         out.write(f"{'Char':<6} {'Codepoint':<12} {'Frequency':>10} {'Percentage':>12}\n")
         out.write('-' * 44 + '\n')
         for ch, freq in sorted(counter.items(), key=lambda x: (-x[1], ord(x[0]))):
@@ -83,9 +83,18 @@ def write_results(counter):
     print(" done.", file=sys.stderr)
 
 def main():
-    heap = read_files('targets')
-    counter = analyze(heap)
-    write_results(counter)
+    combined = Counter()
+    for name in sorted(os.listdir('targets')):
+        dir_path = os.path.join('targets', name)
+        if not os.path.isdir(dir_path):
+            continue
+        print(f"\n=== {name} ===", file=sys.stderr)
+        heap = read_files(dir_path)
+        counter = analyze(heap)
+        write_results(counter, os.path.join('targets', f"{name}.freq.txt"))
+        combined += counter
+    print(f"\n=== Combined ===", file=sys.stderr)
+    write_results(combined, OUTPUT_PATH)
 
 if __name__ == '__main__':
     main()
