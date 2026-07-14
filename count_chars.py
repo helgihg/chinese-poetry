@@ -45,11 +45,23 @@ for root, dirs, files in os.walk('.'):
 print(f"\nDone reading. Scanned {files_scanned} file(s), skipped {files_skipped}.", file=sys.stderr)
 
 heap = ''.join(chunks)
-status(f"Heap size: {len(heap)} characters total")
+total = len(heap)
+status(f"Heap size: {total} characters total")
 print("Analyzing...", file=sys.stderr)
 
-counter = Counter(ch for ch in heap if is_chinese(ch))
+counter = Counter()
+report_every = max(1, total // 20)  # report every 5%
+last_report = 0
 
+for i, ch in enumerate(heap):
+    if is_chinese(ch):
+        counter[ch] += 1
+    if i - last_report >= report_every:
+        pct = (i + 1) / total * 100
+        status(f"  {i+1:,} / {total:,} characters ({pct:.0f}%) — {len(counter)} unique Chinese chars so far")
+        last_report = i
+
+status(f"  {total:,} / {total:,} characters (100%) — done")
 print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.\n", file=sys.stderr)
 
 print(f"{'Char':<6} {'Frequency':>10}")
