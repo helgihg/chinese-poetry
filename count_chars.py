@@ -70,8 +70,8 @@ print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} 
 
 print(f"Writing results to {output_path}...", file=sys.stderr)
 with open(output_path, 'w', encoding='utf-8') as out:
-    out.write(f"{'Char':<6} {'Frequency':>10}\n")
-    out.write('-' * 18 + '\n')
+    out.write(f"{'Char':<6} {'Codepoint':<12} {'Frequency':>10}\n")
+    out.write('-' * 30 + '\n')
     for ch, freq in counter.most_common():
-        out.write(f"{ch:<6} {freq:>10}\n")
+        out.write(f"{ch:<6} U+{ord(ch):05X}     {freq:>10}\n")
 print("Done.", file=sys.stderr)
