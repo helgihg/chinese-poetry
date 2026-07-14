@@ -83,7 +83,7 @@ def write_results(counter):
     print(" done.", file=sys.stderr)
 
 def main():
-    heap = read_files('.')
+    heap = read_files('targets')
     counter = analyze(heap)
     write_results(counter)
 
