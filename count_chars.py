@@ -34,7 +34,7 @@ def read_files(root_dir):
             status(f"Entering {root}/ ({len(files)} file(s))")
         for fname in files:
             path = os.path.join(root, fname)
-            if os.path.abspath(path) == OUTPUT_PATH or fname.endswith('.freq.txt'):
+            if os.path.abspath(path) == OUTPUT_PATH or fname == 'word-frequency.txt':
                 status(f"{path}: skipped (output file)")
                 continue
             try:
@@ -91,7 +91,7 @@ def main():
         print(f"\n=== {name} ===", file=sys.stderr)
         heap = read_files(dir_path)
         counter = analyze(heap)
-        write_results(counter, os.path.join('targets', f"{name}.freq.txt"))
+        write_results(counter, os.path.join(dir_path, 'word-frequency.txt'))
         combined += counter
     print(f"\n=== Combined ===", file=sys.stderr)
     write_results(combined, OUTPUT_PATH)
