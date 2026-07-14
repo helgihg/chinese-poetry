@@ -49,21 +49,25 @@ def read_files(root_dir):
     print(f"\nDone reading. Scanned {scanned} file(s), skipped {skipped}.", file=sys.stderr)
     return ''.join(chunks)
 
-def count_chunk(chunk):
-    return Counter(ch for ch in chunk if is_chinese(ch))
+def count_chunk(args):
+    i, num_chunks, chunk = args
+    print(f"  Chunk {i}/{num_chunks} starting...", file=sys.stderr)
+    return i, Counter(ch for ch in chunk if is_chinese(ch))
 
 def analyze(heap):
     total = len(heap)
     num_workers = multiprocessing.cpu_count()
     chunk_size = max(1, total // num_workers)
     chunks = [heap[i:i + chunk_size] for i in range(0, total, chunk_size)]
+    num_chunks = len(chunks)
     status(f"Heap size: {total} characters total")
-    print(f"Analyzing across {num_workers} worker(s) ({len(chunks)} chunk(s))...", file=sys.stderr)
+    print(f"Analyzing across {num_workers} worker(s) ({num_chunks} chunk(s))...", file=sys.stderr)
     counter = Counter()
     with multiprocessing.Pool(num_workers) as pool:
-        for i, partial in enumerate(pool.imap_unordered(count_chunk, chunks), 1):
+        args = [(i, num_chunks, chunk) for i, chunk in enumerate(chunks, 1)]
+        for done, (i, partial) in enumerate(pool.imap_unordered(count_chunk, args), 1):
             counter += partial
-            status(f"  Chunk {i}/{len(chunks)} done — {len(counter)} unique Chinese chars so far")
+            status(f"  Chunk {i}/{num_chunks} done — {done}/{num_chunks} total complete, {len(counter)} unique Chinese chars so far")
     print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
     return counter
 
