@@ -7,7 +7,7 @@ from collections import Counter
 OUTPUT_PATH = os.path.abspath('chinese_char_frequencies.txt')
 
 def status(msg):
-    print(f"  {msg}", file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 def is_chinese(ch):
     cp = ord(ch)
