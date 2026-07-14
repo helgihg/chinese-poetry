@@ -62,9 +62,13 @@ for i, ch in enumerate(heap):
         last_report = i
 
 status(f"  {total:,} / {total:,} characters (100%) — done")
-print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.\n", file=sys.stderr)
+print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
 
-print(f"{'Char':<6} {'Frequency':>10}")
-print('-' * 18)
-for ch, freq in counter.most_common():
-    print(f"{ch:<6} {freq:>10}")
+output_path = 'chinese_char_frequencies.txt'
+print(f"Writing results to {output_path}...", file=sys.stderr)
+with open(output_path, 'w', encoding='utf-8') as out:
+    out.write(f"{'Char':<6} {'Frequency':>10}\n")
+    out.write('-' * 18 + '\n')
+    for ch, freq in counter.most_common():
+        out.write(f"{ch:<6} {freq:>10}\n")
+print("Done.", file=sys.stderr)
