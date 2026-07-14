@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-import re
+import sys
 from collections import Counter
 
 def is_chinese(ch):
@@ -17,20 +17,36 @@ def is_chinese(ch):
         0x2F800 <= cp <= 0x2FA1F    # CJK Compatibility Supplement
     )
 
+def status(msg):
+    print(f"  {msg}", file=sys.stderr)
+
 counter = Counter()
+files_scanned = 0
+files_skipped = 0
+
+print("Scanning...", file=sys.stderr)
 
 for root, dirs, files in os.walk('.'):
-    # Skip hidden directories
     dirs[:] = [d for d in dirs if not d.startswith('.')]
+    if files:
+        status(f"Entering {root}/ ({len(files)} file(s))")
     for fname in files:
         path = os.path.join(root, fname)
         try:
             with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                for ch in f.read():
-                    if is_chinese(ch):
-                        counter[ch] += 1
-        except (OSError, IsADirectoryError):
-            continue
+                content = f.read()
+            found = sum(1 for ch in content if is_chinese(ch))
+            status(f"  {path}: {found} Chinese character(s)")
+            for ch in content:
+                if is_chinese(ch):
+                    counter[ch] += 1
+            files_scanned += 1
+        except (OSError, IsADirectoryError) as e:
+            status(f"  {path}: skipped ({e})")
+            files_skipped += 1
+
+print(f"\nDone. Scanned {files_scanned} file(s), skipped {files_skipped}.", file=sys.stderr)
+print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.\n", file=sys.stderr)
 
 print(f"{'Char':<6} {'Frequency':>10}")
 print('-' * 18)
