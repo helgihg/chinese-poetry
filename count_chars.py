@@ -20,11 +20,11 @@ def is_chinese(ch):
 def status(msg):
     print(f"  {msg}", file=sys.stderr)
 
-counter = Counter()
+chunks = []
 files_scanned = 0
 files_skipped = 0
 
-print("Scanning...", file=sys.stderr)
+print("Reading files...", file=sys.stderr)
 
 for root, dirs, files in os.walk('.'):
     dirs[:] = [d for d in dirs if not d.startswith('.')]
@@ -35,17 +35,21 @@ for root, dirs, files in os.walk('.'):
         try:
             with open(path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
-            found = sum(1 for ch in content if is_chinese(ch))
-            status(f"  {path}: {found} Chinese character(s)")
-            for ch in content:
-                if is_chinese(ch):
-                    counter[ch] += 1
+            status(f"  {path}: {len(content)} character(s) read")
+            chunks.append(content)
             files_scanned += 1
         except (OSError, IsADirectoryError) as e:
             status(f"  {path}: skipped ({e})")
             files_skipped += 1
 
-print(f"\nDone. Scanned {files_scanned} file(s), skipped {files_skipped}.", file=sys.stderr)
+print(f"\nDone reading. Scanned {files_scanned} file(s), skipped {files_skipped}.", file=sys.stderr)
+
+heap = ''.join(chunks)
+status(f"Heap size: {len(heap)} characters total")
+print("Analyzing...", file=sys.stderr)
+
+counter = Counter(ch for ch in heap if is_chinese(ch))
+
 print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.\n", file=sys.stderr)
 
 print(f"{'Char':<6} {'Frequency':>10}")
