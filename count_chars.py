@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import multiprocessing
 import os
 import sys
 from collections import Counter
@@ -48,21 +49,21 @@ def read_files(root_dir):
     print(f"\nDone reading. Scanned {scanned} file(s), skipped {skipped}.", file=sys.stderr)
     return ''.join(chunks)
 
+def count_chunk(chunk):
+    return Counter(ch for ch in chunk if is_chinese(ch))
+
 def analyze(heap):
     total = len(heap)
+    num_workers = multiprocessing.cpu_count()
+    chunk_size = max(1, total // num_workers)
+    chunks = [heap[i:i + chunk_size] for i in range(0, total, chunk_size)]
     status(f"Heap size: {total} characters total")
-    print("Analyzing...", file=sys.stderr)
+    print(f"Analyzing across {num_workers} worker(s) ({len(chunks)} chunk(s))...", file=sys.stderr)
     counter = Counter()
-    report_every = max(1, total // 20)
-    last_report = 0
-    for i, ch in enumerate(heap):
-        if is_chinese(ch):
-            counter[ch] += 1
-        if i - last_report >= report_every:
-            pct = (i + 1) / total * 100
-            status(f"  {i+1:,} / {total:,} characters ({pct:.0f}%) — {len(counter)} unique Chinese chars so far")
-            last_report = i
-    status(f"  {total:,} / {total:,} characters (100%) — done")
+    with multiprocessing.Pool(num_workers) as pool:
+        for i, partial in enumerate(pool.imap_unordered(count_chunk, chunks), 1):
+            counter += partial
+            status(f"  Chunk {i}/{len(chunks)} done — {len(counter)} unique Chinese chars so far")
     print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
     return counter
 
@@ -71,7 +72,7 @@ def write_results(counter):
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as out:
         out.write(f"{'Char':<6} {'Codepoint':<12} {'Frequency':>10}\n")
         out.write('-' * 30 + '\n')
-        for ch, freq in counter.most_common():
+        for ch, freq in sorted(counter.items(), key=lambda x: (-x[1], ord(x[0]))):
             out.write(f"{ch:<6} U+{ord(ch):05X}     {freq:>10}\n")
     print("Done.", file=sys.stderr)
 
@@ -80,4 +81,5 @@ def main():
     counter = analyze(heap)
     write_results(counter)
 
-main()
+if __name__ == '__main__':
+    main()
