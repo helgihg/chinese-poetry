@@ -20,6 +20,7 @@ def is_chinese(ch):
 def status(msg):
     print(f"  {msg}", file=sys.stderr)
 
+output_path = os.path.abspath('chinese_char_frequencies.txt')
 chunks = []
 files_scanned = 0
 files_skipped = 0
@@ -32,6 +33,9 @@ for root, dirs, files in os.walk('.'):
         status(f"Entering {root}/ ({len(files)} file(s))")
     for fname in files:
         path = os.path.join(root, fname)
+        if os.path.abspath(path) == output_path:
+            status(f"  {path}: skipped (output file)")
+            continue
         try:
             with open(path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
@@ -64,7 +68,6 @@ for i, ch in enumerate(heap):
 status(f"  {total:,} / {total:,} characters (100%) — done")
 print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
 
-output_path = 'chinese_char_frequencies.txt'
 print(f"Writing results to {output_path}...", file=sys.stderr)
 with open(output_path, 'w', encoding='utf-8') as out:
     out.write(f"{'Char':<6} {'Frequency':>10}\n")
