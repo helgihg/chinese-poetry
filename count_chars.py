@@ -73,11 +73,13 @@ def analyze(heap):
 
 def write_results(counter):
     print(f"Writing results to {OUTPUT_PATH}...", file=sys.stderr)
+    total = sum(counter.values())
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as out:
-        out.write(f"{'Char':<6} {'Codepoint':<12} {'Frequency':>10}\n")
-        out.write('-' * 30 + '\n')
+        out.write(f"{'Char':<6} {'Codepoint':<12} {'Frequency':>10} {'Percentage':>12}\n")
+        out.write('-' * 44 + '\n')
         for ch, freq in sorted(counter.items(), key=lambda x: (-x[1], ord(x[0]))):
-            out.write(f"{ch:<6} U+{ord(ch):05X}     {freq:>10}\n")
+            pct = freq / total * 100
+            out.write(f"{ch:<6} U+{ord(ch):05X}     {freq:>10} {pct:>11.2f}%\n")
     print("Done.", file=sys.stderr)
 
 def main():
