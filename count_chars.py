@@ -84,15 +84,19 @@ def write_results(counter, output_path):
 
 def main():
     combined = Counter()
-    for name in sorted(os.listdir('targets')):
-        dir_path = os.path.join('targets', name)
-        if not os.path.isdir(dir_path):
+    top_level = {os.path.join('targets', d) for d in os.listdir('targets')
+                 if os.path.isdir(os.path.join('targets', d))}
+    for root, dirs, _ in os.walk('targets'):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        if root == 'targets':
             continue
-        print(f"\n=== {name} ===", file=sys.stderr)
-        heap = read_files(dir_path)
+        rel = os.path.relpath(root, 'targets')
+        print(f"\n=== {rel} ===", file=sys.stderr)
+        heap = read_files(root)
         counter = analyze(heap)
-        write_results(counter, os.path.join(dir_path, 'word-frequency.txt'))
-        combined += counter
+        write_results(counter, os.path.join(root, 'word-frequency.txt'))
+        if root in top_level:
+            combined += counter
     print(f"\n=== Combined ===", file=sys.stderr)
     write_results(combined, OUTPUT_PATH)
 
