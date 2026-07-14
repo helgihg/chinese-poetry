@@ -52,7 +52,7 @@ def read_files(root_dir):
 
 def count_chunk(args):
     i, num_chunks, chunk = args
-    print(f"  Chunk {i}/{num_chunks} starting...", file=sys.stderr)
+    print(f"Chunk {i}/{num_chunks} starting...", file=sys.stderr)
     return i, Counter(ch for ch in chunk if is_chinese(ch))
 
 def analyze(heap):
@@ -67,7 +67,7 @@ def analyze(heap):
         args = [(i, num_chunks, chunk) for i, chunk in enumerate(chunks, 1)]
         for done, (i, partial) in enumerate(pool.imap_unordered(count_chunk, args), 1):
             counter += partial
-            status(f"  Chunk {i}/{num_chunks} done — {done}/{num_chunks} total complete, {len(counter)} unique Chinese chars so far")
+            status(f"Chunk {i}/{num_chunks} done — {done}/{num_chunks} total complete, {len(counter)} unique Chinese chars so far")
     print(f"Found {len(counter)} unique Chinese characters, {sum(counter.values())} total.", file=sys.stderr)
     return counter
 
